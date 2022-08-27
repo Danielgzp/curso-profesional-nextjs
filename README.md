@@ -1,1 +1,1 @@
-# curso-profesional-nextjs
+# Curso Profesional de Nextjs
