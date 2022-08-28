@@ -1,21 +1,39 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { LockClosedIcon } from '@heroicons/react/solid';
 import { useAuth } from 'hooks/useAuth';
+import Swal from 'sweetalert2';
 
 export default function LoginPage() {
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
   const auth = useAuth();
+  const [state, setState] = useState({
+    loading: false,
+    error: null,
+  });
 
   const submitHanlder = (event) => {
     event.preventDefault();
     const email = emailRef.current.value;
     const password = passwordRef.current.value;
 
-    auth.signIn(email, password).then(() => {
-      console.log('Login success');
-    });
+    auth
+      .signIn(email, password)
+      .then(() => {
+        Swal.fire('Login Success!!');
+      })
+      .catch((err) => {
+        setState({ loading: false, error: err });
+        Swal.fire({
+          icon: 'error',
+          text: 'Password o Contrasenia incorrecta',
+        });
+      });
   };
+
+  if (state.loading) {
+    return <h2>Loading...</h2>;
+  }
 
   return (
     <>
