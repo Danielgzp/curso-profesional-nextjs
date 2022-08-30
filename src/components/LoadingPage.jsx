@@ -2,10 +2,13 @@ import { useRef, useState } from 'react';
 import { LockClosedIcon } from '@heroicons/react/solid';
 import { useAuth } from 'hooks/useAuth';
 import Swal from 'sweetalert2';
+import { useRouter } from 'next/router';
+import Loading from 'common/Loading';
 
 export default function LoginPage() {
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
+  const router = useRouter();
   const auth = useAuth();
   const [state, setState] = useState({
     loading: false,
@@ -14,25 +17,43 @@ export default function LoginPage() {
 
   const submitHanlder = (event) => {
     event.preventDefault();
+    setState({ loading: true, error: null });
     const email = emailRef.current.value;
     const password = passwordRef.current.value;
 
     auth
       .signIn(email, password)
       .then(() => {
-        Swal.fire('Login Success!!');
+        router.push('/dashboard');
+        setState({ loading: false, error: null });
+        Swal.fire('Login Success !!!');
       })
       .catch((err) => {
-        setState({ loading: false, error: err });
-        Swal.fire({
-          icon: 'error',
-          text: 'Password o Contrasenia incorrecta',
-        });
+        if (err.response?.status === 401) {
+          setState({ loading: false, error: err });
+          Swal.fire({
+            icon: 'error',
+            text: 'Password o Contrasenia incorrecta',
+          });
+        } else if (err.request) {
+          setState({ loading: false, error: err });
+          Swal.fire({
+            icon: 'error',
+            text: 'Ha ocurrido algún problema',
+          });
+        } else {
+          setState({ loading: false, error: err });
+          Swal.fire({
+            icon: 'error',
+            text: 'No se ha podido conectar con el servidor, comprueba tu internet',
+          });
+        }
+        setState({ loading: false });
       });
   };
 
   if (state.loading) {
-    return <h2>Loading...</h2>;
+    return <Loading></Loading>;
   }
 
   return (
