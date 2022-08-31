@@ -1,10 +1,20 @@
-import { addProduct } from "services/api/products";
-import { useRef } from "react";
+import { addProduct, updateProduct } from "services/api/products";
+import { useEffect, useRef } from "react";
 import Swal from "sweetalert2";
+import { useRouter } from "next/router";
 //useRef nos permite hacer una referencia al formulario a formData
 
-export default function FormProduct({setOpen}) {
-  const formRef = useRef(null); //null como primera instancia
+export default function FormProduct({ setOpen, product }) {
+  const formRef = useRef(null); //null como primera
+  const router = useRouter();
+
+  // Se usa el hook del cambio de estado sobre los productos
+  useEffect(() => {
+    // Se coge la referencia al nodo de HTML del select
+    const categoryTag = document.querySelector("#category");
+    // Se cambiar el valor del nodo por el valor del id; eso hace que el valor del <option> cambie tambien
+    categoryTag.value = product?.category?.id;
+  }, [product]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -18,27 +28,45 @@ export default function FormProduct({setOpen}) {
       categoryId: parseInt(formData.get("category")),
       images: [formData.get("images").name],
     };
-    addProduct(data)
-      .then(() => {
-        Swal.fire({
-          position: "top-end",
-          icon: "success",
-          title: "Product added successfully",
-          showConfirmButton: false,
-          timer: 1500,
+    if (product) {
+      updateProduct(product.id, data)
+        .then(() => {
+          Swal.fire({
+            position: "top-end",
+            icon: "success",
+            title: "Product updated successfully",
+            showConfirmButton: false,
+            timer: 1500,
+          });
+          router.push("/dashboard/products/");
+        })
+        .catch((error) => {
+          Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: error.message,
+          });
         });
-        setOpen(false)
-      })
-      .catch((error) => {
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: error.message,
-          footer: '<a href="">Why do I have this issue?</a>',
+    } else {
+      addProduct(data)
+        .then(() => {
+          Swal.fire({
+            position: "top-end",
+            icon: "success",
+            title: "Product added successfully",
+            showConfirmButton: false,
+            timer: 1500,
+          });
+          setOpen(false);
+        })
+        .catch((error) => {
+          Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: error.message,
+          });
         });
-      });
-
-      
+    }
   };
   //Con formRef permite conectar al formulario
   //Con handleSubmit nos permite obtener la información
@@ -56,6 +84,7 @@ export default function FormProduct({setOpen}) {
                 Title
               </label>
               <input
+                defaultValue={product?.title}
                 type="text"
                 name="title"
                 id="title"
@@ -70,6 +99,7 @@ export default function FormProduct({setOpen}) {
                 Price
               </label>
               <input
+                defaultValue={product?.price}
                 type="number"
                 name="price"
                 id="price"
@@ -84,6 +114,7 @@ export default function FormProduct({setOpen}) {
                 Category
               </label>
               <select
+                //EL DEFAULT VALUE NO FUNCIONA CON UN SELECT, EN ESTE CASO LO HICIMOS EN EL USEEEFFECT
                 id="category"
                 name="category"
                 autoComplete="category-name"
@@ -105,6 +136,7 @@ export default function FormProduct({setOpen}) {
                 Description
               </label>
               <textarea
+                defaultValue={product?.description}
                 name="description"
                 id="description"
                 autoComplete="description"
@@ -140,6 +172,7 @@ export default function FormProduct({setOpen}) {
                       >
                         <span>Upload a file</span>
                         <input
+                          defaultValue={product?.image}
                           id="images"
                           name="images"
                           type="file"

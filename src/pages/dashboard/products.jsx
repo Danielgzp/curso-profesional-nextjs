@@ -6,6 +6,7 @@ import endPoints from "services/api";
 import axios from "axios";
 import { deleteProduct } from "services/api/products";
 import Swal from "sweetalert2";
+import Link from "next/link";
 
 export default function Products() {
   const [open, setOpen] = useState(false);
@@ -24,7 +25,8 @@ export default function Products() {
   }, []);
 
   const handleDelete = (id) => {
-    deleteProduct(id).then(()=>{
+    deleteProduct(id)
+      .then(() => {
         Swal.fire({
           title: "Are you sure?",
           text: "You won't be able to revert this!",
@@ -38,14 +40,15 @@ export default function Products() {
             Swal.fire("Deleted!", "Your product has been deleted.", "success");
           }
         });
-    }).catch((error) =>{
+      })
+      .catch((error) => {
         Swal.fire({
           icon: "error",
           title: "Oops...",
           text: error.message,
         });
-    })
-  }
+      });
+  };
 
   return (
     <>
@@ -141,12 +144,11 @@ export default function Products() {
                         {product.id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <a
-                          href="/edit"
-                          className="text-indigo-600 hover:text-indigo-900"
-                        >
-                          Edit
-                        </a>
+                        <Link href={`/dashboard/edit/${product.id}`}>
+                          <a className="text-indigo-600 hover:text-indigo-900">
+                            Edit
+                          </a>
+                        </Link>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <XCircleIcon
