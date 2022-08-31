@@ -1,7 +1,8 @@
 import React, { useState, useContext, createContext } from 'react';
-import Cookie from 'js-cookie';
+import Cookies from 'js-cookie';
 import axios from 'axios';
-import endPoints from '@services/api/';
+import endPoints from 'services/api';
+import Modal from 'common/Modal';
 
 const AuthContext = createContext();
 
@@ -16,6 +17,10 @@ export const useAuth = () => {
 
 function useProvideAuth() {
   const [user, setUser] = useState(null);
+  const [state, setState] = useState({
+    loading: false,
+    error: null,
+  });
 
   const signIn = async (email, password) => {
     const options = {
@@ -25,25 +30,28 @@ function useProvideAuth() {
       },
     };
     const { data: access_token } = await axios.post(endPoints.auth.login, { email, password }, options);
+
     if (access_token) {
       const token = access_token.access_token;
-      Cookie.set('token', token, { expires: 5 });
+      Cookies.set('token', token, { expires: 5 });
+
       axios.defaults.headers.Authorization = `Bearer ${token}`;
       const { data: user } = await axios.get(endPoints.auth.profile);
+      console.log(user);
       setUser(user);
     }
   };
 
   const logout = () => {
-    Cookie.remove('token');
+    Cookies.remove("token");
     setUser(null);
     delete axios.defaults.headers.Authorization;
-    window.location.href = '/login';
+    window.location.href = "/login";
   };
 
   return {
     user,
     signIn,
-    logout,
+    logout
   };
 }
